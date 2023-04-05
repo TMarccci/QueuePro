@@ -1,0 +1,28 @@
+* {
+    font-family: 'Calibri', 'Helvetica';
+    font-weight: bolder;
+}
+
+#wherearewe, #brand {
+    color: white;
+}
+
+.form-control:focus {
+    border-color: rgb(218, 81, 81);
+    box-shadow: 0 0 0 0.2rem rgba(218, 81, 81, 0.25);
+} 
+
+.imagebutton:hover {
+    /* Pointer to click */
+    cursor: pointer;
+}
+
+.unselectable {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#queuesection {
+    border-left: 2px solid black;
+}
