@@ -8,7 +8,7 @@
                 <img class="d-block mx-auto w-75" src="{{ url_for('static', filename='img/nothingqueue.png') }}" alt="Nothing">
             </div>
             <div class="row mt-3 d-flex">
-                <div class="col-2"><div class="row text-center"><span class="p-0">0:50</span></div></div>
+                <div class="col-2"><div class="row text-center placeholder-glow"><span class="p-0 placeholder w-75 mx-auto">0:50</span></div></div>
                 <div class="col-8">
                     <div class="row pt-1">
                         <div class="progress-stacked mx-auto p-0 bg-secondary" style="border-radius: 20px">
@@ -21,7 +21,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-2"><div class="row text-center"><span class="p-0">-1:35</span></div></div>
+                <div class="col-2"><div class="row text-center placeholder-glow"><span class="p-0 placeholder w-75 mx-auto">-1:35</span></div></div>
             </div>
             <div class="row mt-5">
                 <div class="col-4">
@@ -36,9 +36,9 @@
             </div>
         </div>
         <div class="col-4">
-            <div class="row mt-3 mb-5 pb-5">
-                <span class="h5">There is nothing in the queue</span>
-                <span class="h5 fw-bold">Add something to play</span>
+            <div class="row mt-3 mb-5 pb-5 placeholder-glow">
+                <span class="h5 placeholder w-75">There is nothing in the queue</span>
+                <span class="h5 fw-bold placeholder w-50">Add something to play</span>
             </div>
             <div class="row pt-5">
                 <span class="h4">Join session: </span>
@@ -49,47 +49,51 @@
             <div class="row mt-3 pb-2">
                 <span class="h5 fw-bold">Queue:</span>
             </div>
-            <div class="row mb-3 ms-3">
-                <div class="col-2">
-                    <!-- Thumbnail -->
-                    <div class="row m-0 unselectable" style="
-                    height: 50px; 
-                    width: 50px; 
-                    border-radius: 10px; 
-                    background-image: url('https://img.youtube.com/vi/OXm6_v0rMCY/mqdefault.jpg');
-                    background-size: cover;
-                    background-position: center;"></div>
-                </div>
-                <div class="col-9">
-                    <span>Bad Romance (Gaga Live Sydney Monster Hall)</span>
-                    <br>
-                    <span>TMarccci</span>
-                </div>
-                <div class="col-1">
-                    <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
-                </div>
-            </div>
-            <div class="row mb-3 ms-3">
-                <div class="col-2">
-                    <!-- Thumbnail -->
-                    <div class="row m-0 unselectable" style="
-                    height: 50px; 
-                    width: 50px; 
-                    border-radius: 10px; 
-                    background-image: url('https://img.youtube.com/vi/Zi_XLOBDo_Y/mqdefault.jpg');
-                    background-size: cover;
-                    background-position: center;"></div>
-                </div>
-                <div class="col-8">
-                    <span>Michael Jackson - Billie Jean (Official Video)</span>
-                    <br>
-                    <span>TMarccci</span>
-                </div>
-                <div class="col-1">
-                    <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/gototop.png') }}" alt="Go To Top" style="margin-top: 25%;"></div>
-                </div>
-                <div class="col-1">
-                    <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
+            <div class="row" id="items">
+                <div class="col-12">
+                    <div class="row mb-3 ms-3">
+                        <div class="col-2 placeholder-glow">
+                            <div class="row m-0 unselectable placeholder" style="
+                            height: 50px; 
+                            width: 50px; 
+                            border-radius: 10px; 
+                            /* background-image: url('https://img.youtube.com/vi/OXm6_v0rMCY/mqdefault.jpg'); */
+                            background-size: cover;
+                            background-position: center;"></div>
+                        </div>
+                        <div class="col-9 placeholder-glow">
+                            <span class="placeholder">Bad Romance (Gaga Live Sydney Monster Hall)</span>
+                            <br>
+                            <span class="placeholder">TMarccci</span>
+                        </div>
+                        <div class="col-1">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
+                        </div>
+                    </div>
+                    {% for i in range(6) %}
+                    <div class="row mb-3 ms-3">
+                        <div class="col-2 placeholder-glow">
+                            <div class="row m-0 unselectable placeholder" style="
+                            height: 50px; 
+                            width: 50px; 
+                            border-radius: 10px; 
+                            /* background-image: url('https://img.youtube.com/vi/Zi_XLOBDo_Y/mqdefault.jpg'); */
+                            background-size: cover;
+                            background-position: center;"></div>
+                        </div>
+                        <div class="col-8 placeholder-glow">
+                            <span class="placeholder">Michael Jackson - Billie Jean (Official Video)</span>
+                            <br>
+                            <span class="placeholder">TMarccci</span>
+                        </div>
+                        <div class="col-1">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/gototop.png') }}" alt="Go To Top" style="margin-top: 25%;"></div>
+                        </div>
+                        <div class="col-1">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

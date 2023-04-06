@@ -1,8 +1,8 @@
 from flask import Flask, session, redirect, request, url_for, render_template, Response, jsonify, send_file, send_from_directory
-import mysql.connector, uuid, time, segno, datetime
+import mysql.connector, uuid, time, segno, datetime, json
 from pytube import YouTube 
 
-hostIp = 'localhost'
+hostIp = '127.0.0.1'
 hostPort = 5000
 app = Flask(__name__)
 
@@ -91,35 +91,66 @@ def serverqr(sessionid):
 @app.route('/hostsession/streamqueue/<sessionid>')
 def streamqueue(sessionid):
     def get_data():
-        # Later, we will get the queue from the database
-        # Prepare the data
-        data = {
-            'queue': [
-                {
-                    'name': 'Lady Gaga - Bad Romance (Gaga Live Sydney Monster Hall)',
-                    'sentby': 'TMarccci',
-                    'placeinqueue': '1',
-                    'thumbnailurl': 'https://img.youtube.com/vi/OXm6_v0rMCY/mqdefault.jpg',
-                    'videolenght': '5:00',
-                },
-                {
-                    'name': 'Michael Jackson - Billie Jean (Official Video)',
-                    'artist': 'TMarccci',
-                    'album': '2',
-                    'duration': '3:00',
-                    'votes': '3:00',
-                },
-            ]
-        }
-
+        data = get_queue(sessionid)
+        
         while True:
-            # Start a timer on an other thread continue process after 5 seconds
-            # This is to simulate the time it takes to get the queue from the database
-            # This is not needed in the final product
+            # Check if the queue has been modified
+            current_queue = get_queue(sessionid)
+            if current_queue != data['queue']:
+                data['queue'] = current_queue
+                yield "data: {}\n\n".format(json.dumps(data)).encode('utf-8')
 
+            time.sleep(3)
 
-            yield f"data: {data} \n\n"
     return Response(get_data(), mimetype='text/event-stream')
+
+# Get the queue from the database
+def get_queue(sessionid):
+    sql = "SELECT * FROM qp_sessionmusics WHERE whichsession = %s"
+    val = (sessionid,)
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+    mydb.commit()
+    
+    data = {
+        'queue': []
+    }
+    
+    for x in myresult:
+        # Get who sent
+        sql = "SELECT username FROM qp_sessionusers WHERE userid = %s"
+        
+        # whichsession userid username skipsleft totalsongs
+        val = (x[2],)
+        mycursor.execute(sql, val)
+        myresult = mycursor.fetchall()
+        mydb.commit()
+        
+        # Who sent
+        username = myresult[0][0]
+        
+        # Get video info
+        name = x[7]
+        
+        # Get video thumbnail
+        thumbnailurl = x[9]
+        
+        # Get video lenght
+        lenght = x[8]
+        
+        # Get place in queue
+        placeinqueue = x[4]
+        
+        # Append to data
+        data['queue'].append({
+            'name': name,
+            'sentby': username,
+            'placeinqueue': placeinqueue,
+            'thumbnailurl': thumbnailurl,
+            'videolenght': lenght,
+        })
+
+    return data
 
 # Join session page, the user can enter join code here
 @app.route('/joinsession')
@@ -472,5 +503,5 @@ def managesessionapiid(sessionid, guestid):
 
 if __name__ == '__main__':
     context = ('./ssl/localhost.crt', './ssl/localhost.key')
-    app.run(host=hostIp, port=hostPort, debug=False, ssl_context=context)
+    app.run(host=hostIp, port=hostPort, debug=False)
     print("\n")
