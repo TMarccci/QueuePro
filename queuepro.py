@@ -2,11 +2,11 @@ from flask import Flask, session, redirect, request, url_for, render_template, R
 import mysql.connector, uuid, time, segno, datetime
 from pytube import YouTube 
 
-hostIp = '192.168.0.28'
+hostIp = 'localhost'
 hostPort = 5000
 app = Flask(__name__)
 
-host = '192.168.0.27'
+host = 'vpn.tmarccci.hu'
 user = 'pythonuser'
 password = 'nn253g8v@'
 database = 'queuepro'
@@ -22,12 +22,12 @@ mycursor = mydb.cursor()
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('home.html', title="QueuePro - Home")
 
 # Host session page, the user can create room here
 @app.route('/hostsession')
 def hostsession():
-    return render_template('createsession.html')
+    return render_template('createsession.html', title="QueuePro - Create Music Session")
 
 # Register host session to database API Segment
 @app.route('/registerhostsession', methods=['POST'])
@@ -73,7 +73,7 @@ def registerhostsession():
 
 @app.route('/hostsession/<sessionid>')
 def hostsessionid(sessionid):
-    return render_template('hostsession.html', sessionid=sessionid)
+    return render_template('hostsession.html', sessionid=sessionid, title="QueuePro - Host Session")
 
 # Generate QR code for session
 def generate_qr_code(sessionid):
@@ -124,7 +124,7 @@ def streamqueue(sessionid):
 # Join session page, the user can enter join code here
 @app.route('/joinsession')
 def joinsession():
-    return render_template('joinsession.html')
+    return render_template('joinsession.html', title="QueuePro - Join Session")
 
 # Join session api to server session id by join code
 @app.route('/joinsessionapi', methods=['POST'])
@@ -154,7 +154,7 @@ def joinsessionapi():
 # Join session page, the user can enter his name here (also this is where the user dropped with qr code)
 @app.route('/joinsession/<sessionid>')
 def joinsessionid(sessionid):
-    return render_template('managesessionguest.html', sessionid=sessionid)
+    return render_template('managesessionguest.html', sessionid=sessionid, title="QueuePro - Join Session")
 
 # Join session api to server session register the user
 @app.route('/joinsessionapi/<sessionid>', methods=['POST'])
@@ -220,7 +220,7 @@ def managesessionid(sessionid, guestid):
 
     skipsleft = myresult[0][0]
 
-    return render_template('managesession.html', sessionid=sessionid, guestid=guestid, skipsleft=skipsleft)
+    return render_template('managesession.html', sessionid=sessionid, guestid=guestid, skipsleft=skipsleft, title="QueuePro - Session")
 
 # Control session api to server register links and check
 @app.route('/managesessionapi/<sessionid>/<guestid>', methods=['POST'])
@@ -471,6 +471,6 @@ def managesessionapiid(sessionid, guestid):
             return jsonify({'response': myresult[0][0]})
 
 if __name__ == '__main__':
-    context = ('server.crt', 'server.key')
+    context = ('./ssl/localhost.crt', './ssl/localhost.key')
     app.run(host=hostIp, port=hostPort, debug=False, ssl_context=context)
     print("\n")
