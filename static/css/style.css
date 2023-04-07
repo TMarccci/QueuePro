@@ -12,9 +12,14 @@
     box-shadow: 0 0 0 0.2rem rgba(218, 81, 81, 0.25);
 } 
 
+.imagebutton { 
+    transition: all .2s ease-in-out; 
+}
+
 .imagebutton:hover {
     /* Pointer to click */
     cursor: pointer;
+    transform: scale(1.1);
 }
 
 .unselectable {
@@ -25,4 +30,85 @@
 
 #queuesection {
     border-left: 2px solid black;
+}
+
+/* The slider itself */
+#volume-slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 100%; /* Full-width */
+    height: 25px; /* Specified height */
+    padding-left: 0;
+    padding-right: 0;
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+#volume-slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #DA5151; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 25%;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #DA5151; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 25%;
+}
+
+#volume-slider:focus {
+    border-color: none;
+    box-shadow: none;
+}
+
+#seek-slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 100%; /* Full-width */
+    height: 24px; /* Specified height */
+    padding-left: 0;
+    padding-right: 0;
+    background: #d3d3d3; /* Grey background */
+    border-radius: 10px;
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+#seek-slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+#seek-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 15px; /* Set a specific slider handle width */
+    height: 15px; /* Slider handle height */
+    background: #DA5151; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 50%;
+}
+
+#seek-slider::-moz-range-thumb {
+    width: 15px; /* Set a specific slider handle width */
+    height: 15px; /* Slider handle height */
+    background: #DA5151; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 50%;
 }

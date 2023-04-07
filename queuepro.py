@@ -98,15 +98,17 @@ def streamqueue(sessionid):
             current_queue = get_queue(sessionid)
             if current_queue != data['queue']:
                 data['queue'] = current_queue
-                yield "data: {}\n\n".format(json.dumps(data)).encode('utf-8')
+                yield "data: {}\n\n".format(json.dumps(data['queue'])).encode('utf-8')
 
-            time.sleep(3)
+            for x in range(200):
+                time.sleep(0.01)
+
 
     return Response(get_data(), mimetype='text/event-stream')
 
 # Get the queue from the database
 def get_queue(sessionid):
-    sql = "SELECT * FROM qp_sessionmusics WHERE whichsession = %s"
+    sql = "SELECT * FROM qp_sessionmusics WHERE whichsession = %s AND isplayed = 0 ORDER BY placeinqueue ASC"
     val = (sessionid,)
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
@@ -130,13 +132,13 @@ def get_queue(sessionid):
         username = myresult[0][0]
         
         # Get video info
-        name = x[7]
+        name = x[8]
         
         # Get video thumbnail
-        thumbnailurl = x[9]
+        thumbnailurl = x[10]
         
         # Get video lenght
-        lenght = x[8]
+        lenght = x[9]
         
         # Get place in queue
         placeinqueue = x[4]
@@ -152,6 +154,96 @@ def get_queue(sessionid):
 
     return data
 
+# Move to the top of the queue api
+@app.route('/hostsession/movetotop/<sessionid>', methods=['POST'])
+def movetotop(sessionid):
+    if request.method == 'POST':
+        # Payload data
+        # data = {
+        #    "placeinqueue": placeinqueue.innerHTML
+        # };
+
+        data = request.json
+
+        # Place in queue
+        placeinqueue = data['placeinqueue']
+
+        # The move to top function works like this
+        # eg. you get placeinqueue = 3
+        # 1. Get the id of the placeinqueue = 3
+        # 2. Add 1 to all the placeinqueue's
+        # 3. Set the placeinqueue of the id to 1
+
+        # Get the id of the placeinqueue = 3
+        sql = "SELECT id FROM qp_sessionmusics WHERE whichsession = %s AND placeinqueue = %s"
+        val = (sessionid, placeinqueue)
+        mycursor.execute(sql, val)
+        myresult = mycursor.fetchall()
+        mydb.commit()
+
+        # Get the id
+        id = myresult[0][0]
+
+        # Add 1 to placeinqueue for the songs is are above the song
+        sql = "UPDATE qp_sessionmusics SET placeinqueue = placeinqueue + 1 WHERE whichsession = %s AND placeinqueue < %s AND isplayed = 0"
+        val = (sessionid, placeinqueue)
+        mycursor.execute(sql, val)
+        mydb.commit()
+
+        # Set the placeinqueue of the id to 1
+        sql = "UPDATE qp_sessionmusics SET placeinqueue = 1 WHERE id = %s"
+        val = (id,)
+        mycursor.execute(sql, val)
+        mydb.commit()
+
+        # Return
+        return jsonify({'success': True})
+
+# Delete from queue api
+@app.route('/hostsession/deletefromqueue/<sessionid>', methods=['POST'])
+def deletefromqueue(sessionid):
+    if request.method == 'POST':
+        # Payload data
+        # data = {
+        #    "placeinqueue": placeinqueue.innerHTML
+        # };
+
+        data = request.json
+
+        # Place in queue
+        placeinqueue = data['placeinqueue']
+
+        # Get the id of the placeinqueue
+        sql = "SELECT id FROM qp_sessionmusics WHERE whichsession = %s AND placeinqueue = %s"
+        val = (sessionid, placeinqueue)
+        mycursor.execute(sql, val)
+        myresult = mycursor.fetchall()
+        mydb.commit()
+
+        # Get the id
+        id = myresult[0][0]
+
+        # Reduce all the placeinqueue's by 1 after the deleted one
+        sql = "UPDATE qp_sessionmusics SET placeinqueue = placeinqueue - 1 WHERE whichsession = %s AND placeinqueue > %s"
+        val = (sessionid, placeinqueue)
+        mycursor.execute(sql, val)
+        mydb.commit()
+
+        # Delete the song from the queue
+        sql = "DELETE FROM qp_sessionmusics WHERE id = %s"
+        val = (id,)
+        mycursor.execute(sql, val)
+        mydb.commit()
+
+
+        # Return
+        return jsonify({'success': True})
+
+# Direct link provider api for the host
+@app.route('/hostsession/directlink/<sessionid>', methods=['POST'])
+def directlink(sessionid):
+    print("I am not done yet")
+    
 # Join session page, the user can enter join code here
 @app.route('/joinsession')
 def joinsession():
@@ -274,7 +366,7 @@ def managesessionapiid(sessionid, guestid):
         link = data['link']
 
         # Database (qp_sessionmusics):
-        # 	id     whichsession    sentbywhoid url placeinqueue    isplayed    ifplayedwhen(datetime)    videoname   videolenght     thumbnailurl
+        # 	id     whichsession    sentbywhoid url placeinqueue  isplaying  isplayed    ifplayedwhen(datetime)    videoname   videolenght     thumbnailurl
         # Response:
         # -"Song already played in the last " + str(timebetweensamemusic/60/60) + " hours"
         # -"Song already played more than " + str(samemusicmaxtimes) + " times"
@@ -349,7 +441,7 @@ def managesessionapiid(sessionid, guestid):
             if videolenght <= maxvideolenght[0][0]:
                 # If no then add it to the queue
                 # Add it to the queue the way get the last place in the queue and add 1. If there is no queue then add 1
-                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s ORDER BY id DESC"
+                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s ORDER BY placeinqueue DESC"
                 val = (sessionidfromapi,)
                 mycursor.execute(sql, val)
                 myresult = mycursor.fetchall()
@@ -361,8 +453,8 @@ def managesessionapiid(sessionid, guestid):
                     placeinqueue = myresult[0][0] + 1
 
                 # Add to the queue
-                sql = "INSERT INTO qp_sessionmusics (whichsession, sentbywhoid, url, placeinqueue, isplayed, ifplayedwhen, videoname, videolenght, thumbnailurl) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                val = (sessionidfromapi, guestidfromapi, link, placeinqueue, 0, 0, videoname, videolenght, thumbnailurl)
+                sql = "INSERT INTO qp_sessionmusics (whichsession, sentbywhoid, url, placeinqueue, isplaying, isplayed, ifplayedwhen, videoname, videolenght, thumbnailurl) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                val = (sessionidfromapi, guestidfromapi, link, placeinqueue, 0, 0, 0, videoname, videolenght, thumbnailurl)
                 mycursor.execute(sql, val)
                 mydb.commit()
 
@@ -424,7 +516,7 @@ def managesessionapiid(sessionid, guestid):
                             if videolenght <= maxvideolenght[0][0]:
                                 # If no then add it to the queue
                                 # Add it to the queue the way get the last place in the queue and add 1. If there is no queue then add 1
-                                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s ORDER BY id DESC"
+                                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s ORDER BY placeinqueue DESC"
                                 val = (sessionidfromapi,)
                                 mycursor.execute(sql, val)
                                 myresult = mycursor.fetchall()
@@ -436,8 +528,8 @@ def managesessionapiid(sessionid, guestid):
                                     placeinqueue = myresult[0][0] + 1
 
                                 # Add to the queue
-                                sql = "INSERT INTO qp_sessionmusics (whichsession, sentbywhoid, url, placeinqueue, isplayed, ifplayedwhen, videoname, videolenght, thumbnailurl) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                                val = (sessionidfromapi, guestidfromapi, link, placeinqueue, 0, 0, videoname, videolenght, thumbnailurl)
+                                sql = "INSERT INTO qp_sessionmusics (whichsession, sentbywhoid, url, placeinqueue, isplaying, isplayed, ifplayedwhen, videoname, videolenght, thumbnailurl) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                                val = (sessionidfromapi, guestidfromapi, link, placeinqueue, 0, 0, 0, videoname, videolenght, thumbnailurl)
                                 mycursor.execute(sql, val)
                                 mydb.commit()
 

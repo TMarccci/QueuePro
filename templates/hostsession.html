@@ -4,60 +4,71 @@
 <div class="container-fluid">
     <div class="row mt-5 pe-5">
         <div class="col-4">
-            <div class="row mt-3 pb-5">
-                <img class="d-block mx-auto w-75" src="{{ url_for('static', filename='img/nothingqueue.png') }}" alt="Nothing">
+            <div class="row mt-3 pb-5 placeholder-glow" id="albumcoverparent">
+                <img class="d-block mx-auto w-75 placeholder unselectable" src="{{ url_for('static', filename='img/emptycover.png') }}" alt="" id="albumcover">
+            </div>
+            <div class="row" id="audiosource-container">
+                <audio id="audiosource" src="https://rr2---sn-qpbpu8-c0q6.googlevideo.com/videoplayback?expire=1680836154&ei=2jEvZPXFEcGR1gLkvZTIBQ&ip=178.164.165.135&id=o-AOOVGVWdSv9jZVfNsAQAUaMET3CVuYbmXFBtHmwXtwtB&itag=139&source=youtube&requiressl=yes&mh=ca&mm=31%2C29&mn=sn-qpbpu8-c0q6%2Csn-c0q7lnz7&ms=au%2Crdu&mv=m&mvi=2&pl=19&initcwndbps=1412500&vprv=1&mime=audio%2Fmp4&gir=yes&clen=13149603&dur=2156.251&lmt=1640970563919690&mt=1680814158&fvip=3&keepalive=yes&fexp=24007246&c=ANDROID&txp=5532434&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cvprv%2Cmime%2Cgir%2Cclen%2Cdur%2Clmt&sig=AOq0QJ8wRgIhANlqJWwBJ2CIi-LdivPolEJ2j3ExUbEJbQmHSgiMB9gCAiEAyWQem-c0pXesKl6CKA1H3vxeNxKRIpl20VW_Eu7WKZw%3D&lsparams=mh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Cinitcwndbps&lsig=AG3C_xAwRgIhAKhMKt_vnCRpKcT1CS3x0TXtS0lufXfiKKUciexLngCSAiEA2akxBWt_t_0N1svTmv0MsCFwyFD5QMp4-SjoRiCXajk%3D" preload=”metadata” autoplay>
+                <button id="play-icon">Play</button>
             </div>
             <div class="row mt-3 d-flex">
-                <div class="col-2"><div class="row text-center placeholder-glow"><span class="p-0 placeholder w-75 mx-auto">0:50</span></div></div>
+                <div class="col-2 align-self-center"><div class="row text-center placeholder-glow" id="timecurrentparent"><span class="p-0 placeholder w-75 mx-auto" id="timecurrent">0:00</span></div></div>
                 <div class="col-8">
-                    <div class="row pt-1">
-                        <div class="progress-stacked mx-auto p-0 bg-secondary" style="border-radius: 20px">
-                            <div class="progress" role="progressbar" aria-label="Segment two" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: 70%; --bs-progress-bg: none" id="timenow">
-                                <div class="progress-bar" style="border-radius: 20px; background-color: var(--bs-tertiary-color);"></div>
-                              </div>
-                            <div class="progress" role="progressbar" aria-label="Segment one" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width: 30%; --bs-progress-bg: none;" id="timeleft">
-                              <div class="progress-bar bg-secondary" style="border-radius: 20px;"></div>
+                    <div class="row align-self-center">
+                        <input type="range" id="seek-slider" max="100" value="0">
+                    </div>
+                </div>
+                <div class="col-2 align-self-center"><div class="row text-center placeholder-glow" id="timeremainingparent"><span class="p-0 placeholder w-75 mx-auto" id="timeremaining">0:00</span></div></div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-4">
+                    <img id="prevbutton" class="d-block mx-auto w-25 me-3 unselectable imagebutton" src="{{ url_for('static', filename='img/left.png') }}" alt="Prev">
+                </div>
+                <div class="col-4" id="playbuttoncontainer" style="min-height: 80px;">
+                    <img id="playbutton" class="d-block mx-auto w-25 unselectable imagebutton" src="{{ url_for('static', filename='img/play.png') }}" alt="Play">
+                </div>
+                <div class="col-4">
+                    <img class="d-block mx-auto w-25 ms-3 unselectable imagebutton" src="{{ url_for('static', filename='img/right.png') }}" alt="Next">
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-6 mx-auto">
+                    <div class="row">
+                        <div class="col-9 mx-auto align-self-center text-center">
+                            <div class="row">
+                                <input class="form-control w-100" type="range" id="volume-slider" min=0 max=100 step="1" value="25">
+                            </div>
+                            <div class="row">
+                                <output id="volume-output" class="text-center mt-1"><span id="volvalue">25</span> %</output>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-2"><div class="row text-center placeholder-glow"><span class="p-0 placeholder w-75 mx-auto">-1:35</span></div></div>
-            </div>
-            <div class="row mt-5">
-                <div class="col-4">
-                    <img class="d-block mx-auto w-25 me-3 unselectable" src="{{ url_for('static', filename='img/left.png') }}" alt="Prev">
-                </div>
-                <div class="col-4">
-                    <img class="d-block mx-auto w-25 unselectable" src="{{ url_for('static', filename='img/play.png') }}" alt="Play">
-                </div>
-                <div class="col-4">
-                    <img class="d-block mx-auto w-25 ms-3 unselectable" src="{{ url_for('static', filename='img/right.png') }}" alt="Next">
-                </div>
             </div>
         </div>
         <div class="col-4">
-            <div class="row mt-3 mb-5 pb-5 placeholder-glow">
-                <span class="h5 placeholder w-75">There is nothing in the queue</span>
-                <span class="h5 fw-bold placeholder w-50">Add something to play</span>
+            <div class="row mt-3 mb-5 pb-5 placeholder-glow" id="titleandmusicserverparent">
+                <span class="h5 placeholder w-75" id="musictitle">There is nothing in the queue</span>
+                <span class="h5 fw-bold placeholder w-50" id="musicserver">Add something to play</span>
             </div>
             <div class="row pt-5">
                 <span class="h4">Join session: </span>
-                <img class="d-block w-75 mx-auto" src="{{ url_for('serverqr', sessionid=sessionid) }}" alt="QR">
+                <img class="d-block w-75 mx-auto unselectable" src="{{ url_for('serverqr', sessionid=sessionid) }}" alt="QR">
+                <span class="h6 mx-auto text-center mt-2"><b>Session ID: </b><span id="sessionidtext">{{ sessionid }}</span></span>
             </div>
         </div>
         <div class="col-4 ps-3" id="queuesection">
             <div class="row mt-3 pb-2">
-                <span class="h5 fw-bold">Queue:</span>
+                <span class="h5 fw-bold" id="queuetext">Queue:</span>
             </div>
             <div class="row" id="items">
-                <div class="col-12">
-                    <div class="row mb-3 ms-3">
+                <div class="col-12" id="queueitems">
+                    <div class="row mb-3 ms-3 queueitem">
                         <div class="col-2 placeholder-glow">
                             <div class="row m-0 unselectable placeholder" style="
                             height: 50px; 
                             width: 50px; 
                             border-radius: 10px; 
-                            /* background-image: url('https://img.youtube.com/vi/OXm6_v0rMCY/mqdefault.jpg'); */
                             background-size: cover;
                             background-position: center;"></div>
                         </div>
@@ -66,8 +77,8 @@
                             <br>
                             <span class="placeholder">TMarccci</span>
                         </div>
-                        <div class="col-1">
-                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
+                        <div class="col-1 align-self-center">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete"></div>
                         </div>
                     </div>
                     {% for i in range(6) %}
@@ -77,7 +88,6 @@
                             height: 50px; 
                             width: 50px; 
                             border-radius: 10px; 
-                            /* background-image: url('https://img.youtube.com/vi/Zi_XLOBDo_Y/mqdefault.jpg'); */
                             background-size: cover;
                             background-position: center;"></div>
                         </div>
@@ -86,11 +96,11 @@
                             <br>
                             <span class="placeholder">TMarccci</span>
                         </div>
-                        <div class="col-1">
-                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/gototop.png') }}" alt="Go To Top" style="margin-top: 25%;"></div>
+                        <div class="col-1 align-self-center">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/gototop.png') }}" alt="Go To Top"></div>
                         </div>
-                        <div class="col-1">
-                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" style="margin-top: 20%;"></div>
+                        <div class="col-1 align-self-center">
+                            <div class="row"><img class="d-block w-100 unselectable" src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete"></div>
                         </div>
                     </div>
                     {% endfor %}
@@ -99,6 +109,7 @@
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/hostroom.js') }}"></script>
 {% endblock %}
 </body>
 </html>
