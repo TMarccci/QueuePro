@@ -1,18 +1,92 @@
 // Dark mode switch
-function darkModeSwitch() {
-    // Set theese css variables
-    /* body {
-        background-color: #2a2a2a;
-    }
+const switcher = document.getElementById("darktoggle");
+var darkMode = localStorage.getItem('darkMode');
 
-    * {
-        color: white;
-    }
+const enableDarkMode = () => {
+    // Override the css variables
+    document.documentElement.style.setProperty('background-color', '#2a2a2a', 'important');
+    document.documentElement.style.setProperty('--bs-body-bg', '#2a2a2a', 'important');
+    document.documentElement.style.setProperty('--bs-body-color', '#fff');
+    document.documentElement.style.setProperty('text-color', 'white', 'important');
+    document.documentElement.style.setProperty('border-color', 'white', 'important');
+    // Update darkMode in localStorage
+    localStorage.setItem('darkMode', 'enabled');
+    // Update the switcher
+    switcher.src = "/static/img/sun.png";
+}
 
-    #queuesection {
-        border-left-color: white;
+const disableDarkMode = () => {
+    // Override the css variables
+    document.documentElement.style.setProperty('background-color', 'white');
+    document.documentElement.style.setProperty('--bs-body-bg', '#fff');
+    document.documentElement.style.setProperty('--bs-body-color', '#646464');
+    document.documentElement.style.setProperty('text-color', 'black');
+    document.documentElement.style.setProperty('border-color', 'black');
+    // Update darkMode in localStorage
+    localStorage.setItem('darkMode', 'disabled');
+    // Update the switcher
+    switcher.src = "/static/img/moon.png";
+}
+
+if (darkMode === 'enabled') {
+    enableDarkMode();
+}
+
+switcher.addEventListener('click', () => {
+    darkMode = localStorage.getItem('darkMode');
+  
+    if (darkMode !== 'enabled') {
+        enableDarkMode();
     }
-    */
+    else {
+        disableDarkMode();
+    }
+});
+
+// Load next song
+function loadNextSong() {
+    // Get the next song from the server and load it into the player
+    // Get session id
+    var sessionid = document.getElementById("sessionidtext").innerText;
+
+    // Make the api call
+    $.ajax({
+        url: "/hostsession/getnext/" + sessionid,
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+            // Load the song into the player
+            /* {directlink: 'https://rr2---sn-qpbpu8-c0qr.googlevideo.com/video…jqdZmqXrSe0TjnF1MRrYJkIaKHlg9jCresg5Zo4vO8A%3D%3D', idofsong: 78, name: 'Kis Grófo-Bella ciao', thumbnailurl: 'https://i.ytimg.com/vi/qA2ujkrtrOY/hqdefault.jpg?s…GUgZShlMA8=&rs=AOn4CLCFGijZ1QvkFWFANj3elXf4I-LHjg', who_sent: 'dagibenec'} */
+
+            // Parse the data
+            console.log(data);
+
+            // Set the player source
+            var audiosource = document.getElementById("audiosource");
+            audiosource.src = data.directlink;
+            // Remove the placeholder-glow and placeholder class from the text and whosent fields
+            var infoparent = document.getElementById("titleandmusicserverparent");
+            infoparent.classList.remove("placeholder-glow");
+            var musictitle = document.getElementById("musictitle");
+            musictitle.classList.remove("placeholder");
+            var musicserver = document.getElementById("musicserver");
+            musicserver.classList.remove("placeholder");
+            // Set the text of the title and whosent fields
+            musictitle.innerText = data.name;
+            musicserver.innerText = data.who_sent;
+            // Set the if of the song
+            var ifofsong = document.getElementById("idofsong");
+            ifofsong.innerText = data.idofsong;
+            // Remove the placeholder-glow and placeholder class from the thumbnail
+            var albumcoverparent = document.getElementById("albumcoverparent");
+            albumcoverparent.classList.remove("placeholder-glow");
+            var albumcover = document.getElementById("albumcover");
+            albumcover.classList.remove("placeholder");
+
+            // Set the thumbnail
+            albumcover.src = data.thumbnailurl;
+        }
+    });
 }
 
 // Move to top
@@ -79,7 +153,7 @@ listenAndBuildQueue = function() {
 
             // Set the text for queue length and total duration (queuetext)
             if (data.queue.length == 0) {
-                document.getElementById("queuetext").innerText = "Queue:";
+                document.getElementById("queuetext").innerText = "Queue (Add some music):";
             } else {
                 // Sum the duration of all the songs in the queue
                 var totalduration = 0;
@@ -205,8 +279,6 @@ listenAndBuildQueue = function() {
       } 
 };
 
-listenAndBuildQueue();
-
 // Setup player
 playerSetup = function() {
     const audio = document.getElementById('audiosource');
@@ -226,6 +298,7 @@ playerSetup = function() {
     const playIconContainer = document.getElementById('playbutton');
     const volumeSlider = document.getElementById('volume-slider');
     const prevbutton = document.getElementById('prevbutton');
+    const nextbutton = document.getElementById('nextbutton');
 
     let playState = 'play';    
 
@@ -260,6 +333,10 @@ playerSetup = function() {
         requestAnimationFrame(whilePlaying);
         playState = 'pause';
         audio.play();
+    });
+
+    nextbutton.addEventListener('click', () => {
+        audio.currentTime = audio.duration-0.01;
     });
 
 
@@ -336,9 +413,76 @@ playerSetup = function() {
         audio.volume = value / 100;
     });
 
+    loadNextSongThanPlay = function() {
+        // Send to the server that the song has ended
+        var idofsong = document.getElementById('idofsong').innerText;
+        var sessionid = document.getElementById("sessionidtext").innerText;
+        var queuetext = document.getElementById("queuetext")
+        // .innerText = "Queue (Add some music):";
 
-    // Start music
-    audio.play();
+        link = "/hostsession/setasplayed/" + sessionid;
+        var data = {
+            "idInDB": idofsong
+        }
+
+        $.ajax({
+            type: "POST",
+            url: link,
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data) {
+                if (queuetext.innerText != "Queue (Add some music):") {
+                    loadNextSong();
+
+                    // Play button to pause button (replace image source)
+                    playIconContainer.src = "/static/img/pause.png";
+                    requestAnimationFrame(whilePlaying);
+                    playState = 'pause';
+                } else {
+                    // Pause button to play button (replace image source)
+                    playIconContainer.src = "/static/img/play.png";
+                    cancelAnimationFrame(raf);
+                    playState = 'play';
+
+                    console.log("No more songs in queue");
+
+                    // Put placeholders back
+                    var infoparent = document.getElementById("titleandmusicserverparent");
+                    infoparent.classList.add("placeholder-glow");
+                    var musictitle = document.getElementById("musictitle");
+                    musictitle.classList.add("placeholder");
+                    var musicserver = document.getElementById("musicserver");
+                    musicserver.classList.add("placeholder");
+                    // Remove the placeholder-glow and placeholder class from the thumbnail
+                    var albumcoverparent = document.getElementById("albumcoverparent");
+                    albumcoverparent.classList.add("placeholder-glow");
+                    var albumcover = document.getElementById("albumcover");
+                    albumcover.classList.add("placeholder");
+                    // Albumcover to empty
+                    albumcover.src = "/static/img/emptycover.png";
+                    // Remove audio source
+                    var audiosource = document.getElementById("audiosource");
+                    audiosource.src = "";
+
+                    // Set the seek slider to 0
+                    seekSlider.value = 0;
+                    // Set the current time to 0
+                    currentTimeContainer.textContent = calculateTime(0);
+                    // Set the duration to 1:00
+                    durationContainer.textContent = calculateTime(60);
+                }
+            },
+        });
+    }
+
+    document.querySelector("#audiosource").addEventListener("ended", loadNextSongThanPlay, false);
 }
 
+// Check if the queue is empty after some playing 
+// Flow: User is playing music, there is no more music in the queue so music stops, user adds music to the queue, then with this function loadNextSong() is called
+// TODO
+
+listenAndBuildQueue();
 playerSetup();
+loadNextSong();
