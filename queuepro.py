@@ -242,6 +242,17 @@ def deletefromqueue(sessionid):
 # Direct link provider api for the host
 @app.route('/hostsession/directlink/<sessionid>', methods=['POST'])
 def directlink(sessionid):
+    if request.method == 'POST':
+        data = request.json
+
+        link = data['link']
+        video = YouTube(link)
+
+        direct_link = video.streams.filter(only_audio=True).first().url
+
+        # Return
+        return jsonify({'directlink': direct_link})
+
     print("I am not done yet")
     
 # Join session page, the user can enter join code here

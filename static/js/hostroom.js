@@ -259,7 +259,10 @@ playerSetup = function() {
         playIconContainer.src = "/static/img/pause.png";
         requestAnimationFrame(whilePlaying);
         playState = 'pause';
+        audio.play();
     });
+
+
     seekSlider.addEventListener('input', (e) => {
         showRangeProgress(e.target);
     });
@@ -333,6 +336,9 @@ playerSetup = function() {
         audio.volume = value / 100;
     });
 
+
+    // Start music
+    audio.play();
 }
 
 playerSetup();
