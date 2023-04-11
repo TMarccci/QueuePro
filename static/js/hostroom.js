@@ -138,7 +138,7 @@ function deleteFromQueue(placeinqueue) {
 // This is used to update the queue in real time and sometimes it contains the details to skip song
 listenAndBuildQueue = function() {
     var session_id = document.getElementById("sessionidtext").innerText;
-    var url = 'http://' + window.location.host + '/hostsession/streamqueue/' + session_id;
+    var url = 'https://' + window.location.host + '/hostsession/streamqueue/' + session_id;
     var queueitemscount = localStorage.getItem('queueitemscount');
 
 

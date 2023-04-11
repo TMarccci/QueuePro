@@ -2,12 +2,12 @@ from flask import Flask, session, redirect, request, url_for, render_template, R
 import mysql.connector, uuid, time, segno, datetime, json, mysql.connector.pooling
 from pytube import YouTube 
 
-hostIp = '127.0.0.1'
+hostIp = '192.168.0.27'
 domain = 'https://queuepro.tmarccci.hu'
 hostPort = 5000
 app = Flask(__name__)
 
-host = 'vpn.tmarccci.hu'
+host = '192.168.0.27'
 user = 'pythonuser'
 password = 'nn253g8v@'
 database = 'queuepro'
