@@ -54,7 +54,7 @@
             </div>
             <div class="row pt-5">
                 <span class="h4">Join session: </span>
-                <img class="d-block w-75 mx-auto unselectable" src="{{ url_for('serverqr', sessionid=sessionid) }}" alt="QR">
+                <img id="qrcode" class="d-block w-75 mx-auto unselectable" src="{{ url_for('serverqr', sessionid=sessionid) }}" alt="QR">
                 <span class="h6 mx-auto text-center mt-2"><b>Session ID: </b><span id="sessionidtext">{{ sessionid }}</span></span>
             </div>
             <div class="row pt-3">

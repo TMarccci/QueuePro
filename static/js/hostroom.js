@@ -386,16 +386,12 @@ playerSetup = function() {
     if (audio.readyState > 0) {
         displayDuration();
         setSliderMax();
-        displayBufferedAmount();
     } else {
         audio.addEventListener('loadedmetadata', () => {
             displayDuration();
             setSliderMax();
-            displayBufferedAmount();
         });
     }
-
-    audio.addEventListener('progress', displayBufferedAmount);
 
     seekSlider.addEventListener('input', () => {
         currentTimeContainer.textContent = calculateTime(seekSlider.value);
@@ -489,6 +485,10 @@ playerSetup = function() {
         playIconContainer.src = "/static/img/pause.png";
         requestAnimationFrame(whilePlaying);
         playState = 'pause';
+    }, false);
+
+    document.querySelector("#qrcode").addEventListener("click", function() {
+        loadNextSongThanPlay();
     }, false);
 }
 
