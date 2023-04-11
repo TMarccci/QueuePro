@@ -6,7 +6,7 @@ hostIp = '127.0.0.1'
 hostPort = 5000
 app = Flask(__name__)
 
-host = '192.168.0.27'
+host = 'vpn.tmarccci.hu'
 user = 'pythonuser'
 password = 'nn253g8v@'
 database = 'queuepro'
@@ -54,8 +54,8 @@ def registerhostsession():
 
         cnx = cnxpool.get_connection()
         mycursor = cnx.cursor()
-        sql = "INSERT INTO qp_sessions (sessionid, sessioncode, skipsperuser, timebetweensamemusic, samemusicmaxtimes, 	maxvideolenght, creationdate) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        val = (sessionid, sessioncode, skipsperuser, timebetweensamemusic, samemusicmaxtimes, maxvideolenght, creationdate)
+        sql = "INSERT INTO qp_sessions (sessionid, sessioncode, skipsperuser, timebetweensamemusic, samemusicmaxtimes, 	maxvideolenght, creationdate, skipcurrent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        val = (sessionid, sessioncode, skipsperuser, timebetweensamemusic, samemusicmaxtimes, maxvideolenght, creationdate, 0)
         mycursor.execute(sql, val)
         cnx.commit()
         cnx.close()
@@ -86,11 +86,11 @@ def serverqr(sessionid):
 @app.route('/hostsession/streamqueue/<sessionid>')
 def streamqueue(sessionid):
     def get_data():
-        data = get_queue(sessionid)
+        data = get_queue_andifskip(sessionid)
         
         while True:
             # Check if the queue has been modified
-            current_queue = get_queue(sessionid)
+            current_queue = get_queue_andifskip(sessionid)
             if current_queue != data['queue']:
                 data['queue'] = current_queue
                 yield "data: {}\n\n".format(json.dumps(data['queue'])).encode('utf-8')
@@ -102,55 +102,82 @@ def streamqueue(sessionid):
     return Response(get_data(), mimetype='text/event-stream')
 
 # Get the queue from the database
-def get_queue(sessionid):
+def get_queue_andifskip(sessionid):
+    # Check the qp_sessions for if someone requested a skip
     cnx = cnxpool.get_connection()
     mycursor = cnx.cursor()
-    sql = "SELECT * FROM qp_sessionmusics WHERE whichsession = %s AND isplayed = 0 AND placeinqueue > 0 ORDER BY placeinqueue ASC"
+    sql = "SELECT skipcurrent FROM qp_sessions WHERE sessionid = %s"
     val = (sessionid,)
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     cnx.close()
-    
-    data = {
-        'queue': []
-    }
-    
-    for x in myresult:
+
+    skipcurrent = myresult[0][0]
+
+    if skipcurrent != 1:
         cnx = cnxpool.get_connection()
         mycursor = cnx.cursor()
-        # Get who sent
-        sql = "SELECT username FROM qp_sessionusers WHERE userid = %s"
-        # whichsession userid username skipsleft totalsongs
-        val = (x[2],)
+        sql = "SELECT * FROM qp_sessionmusics WHERE whichsession = %s AND isplayed = 0 AND placeinqueue > 0 ORDER BY placeinqueue ASC"
+        val = (sessionid,)
         mycursor.execute(sql, val)
         myresult = mycursor.fetchall()
         cnx.close()
         
-        # Who sent
-        username = myresult[0][0]
+        data = {
+            'queue': []
+        }
         
-        # Get video info
-        name = x[8]
-        
-        # Get video thumbnail
-        thumbnailurl = x[10]
-        
-        # Get video lenght
-        lenght = x[9]
-        
-        # Get place in queue
-        placeinqueue = x[4]
-        
-        # Append to data
-        data['queue'].append({
-            'name': name,
-            'sentby': username,
-            'placeinqueue': placeinqueue,
-            'thumbnailurl': thumbnailurl,
-            'videolenght': lenght,
-        })
+        for x in myresult:
+            cnx = cnxpool.get_connection()
+            mycursor = cnx.cursor()
+            # Get who sent
+            sql = "SELECT username FROM qp_sessionusers WHERE userid = %s"
+            # whichsession userid username skipsleft totalsongs
+            val = (x[2],)
+            mycursor.execute(sql, val)
+            myresult = mycursor.fetchall()
+            cnx.close()
+            
+            # Who sent
+            username = myresult[0][0]
+            
+            # Get video info
+            name = x[8]
+            
+            # Get video thumbnail
+            thumbnailurl = x[10]
+            
+            # Get video lenght
+            lenght = x[9]
+            
+            # Get place in queue
+            placeinqueue = x[4]
+            
+            # Append to data
+            data['queue'].append({
+                'name': name,
+                'sentby': username,
+                'placeinqueue': placeinqueue,
+                'thumbnailurl': thumbnailurl,
+                'videolenght': lenght,
+            })
 
-    return data
+        return data
+    else:
+        # Set skipcurrent to 0
+        cnx = cnxpool.get_connection()
+        mycursor = cnx.cursor()
+        sql = "UPDATE qp_sessions SET skipcurrent = 0 WHERE sessionid = %s"
+        val = (sessionid,)
+        mycursor.execute(sql, val)
+        cnx.commit()
+        cnx.close()
+
+        data = {
+            'queue': 'skip'
+        }
+
+        return data
 
 # Move to the top of the queue api
 @app.route('/hostsession/movetotop/<sessionid>', methods=['POST'])
@@ -808,6 +835,11 @@ def managesessionapiid(sessionid, guestid):
             cnx.close()
 
             return jsonify({'response': myresult[0][0]})
+
+# Control session api skip part
+@app.route('/managesessionapiskip/<sessionid>/<guestid>', methods=['POST'])
+def managesessionapiskip(sessionid, guestid):
+    print("ToDo")
 
 if __name__ == '__main__':
     context = ('./ssl/localhost.crt', './ssl/localhost.key')

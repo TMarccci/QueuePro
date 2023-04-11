@@ -56,8 +56,6 @@ function loadNextSong() {
         contentType: "application/json; charset=utf-8",
         success: function(data) {
             // Load the song into the player
-            /* {directlink: 'https://rr2---sn-qpbpu8-c0qr.googlevideo.com/video…jqdZmqXrSe0TjnF1MRrYJkIaKHlg9jCresg5Zo4vO8A%3D%3D', idofsong: 78, name: 'Kis Grófo-Bella ciao', thumbnailurl: 'https://i.ytimg.com/vi/qA2ujkrtrOY/hqdefault.jpg?s…GUgZShlMA8=&rs=AOn4CLCFGijZ1QvkFWFANj3elXf4I-LHjg', who_sent: 'dagibenec'} */
-
             // Parse the data
             console.log(data);
 
@@ -144,134 +142,141 @@ listenAndBuildQueue = function() {
         let source = new EventSource(url)
 
         source.onmessage = function(event) {
-            console.log(event.data)
             var data = JSON.parse(event.data);
+            console.log(data);
 
-            // Add the queue items to the queue div (#queueitems)
-            var queueitems = document.getElementById("queueitems");
-            queueitems.innerHTML = "";
+            // There is an another thing that this api can send, which is skip song
+            if (data.queue != "skip") {
+                // Add the queue items to the queue div (#queueitems)
+                var queueitems = document.getElementById("queueitems");
+                queueitems.innerHTML = "";
 
-            // Set the text for queue length and total duration (queuetext)
-            if (data.queue.length == 0) {
-                document.getElementById("queuetext").innerText = "Queue (Add some music):";
-            } else {
-                // Sum the duration of all the songs in the queue
-                var totalduration = 0;
-                for (var i = 0; i < data.queue.length; i++) {
-                    totalduration += data.queue[i].videolenght;
-                }
-
-                // Convert totalduration to hours, minutes and seconds if more than 60 minutes
-                // Should look like this if under 60 minutes: 7:02
-                // Should look like this if over 60 minutes: 1:07:02
-                
-                if (totalduration < 3600) {
-                    var hours = 0;
+                // Set the text for queue length and total duration (queuetext)
+                if (data.queue.length == 0) {
+                    document.getElementById("queuetext").innerText = "Queue (Add some music):";
                 } else {
-                    var hours = Math.floor(totalduration / 3600);
-                    totalduration = totalduration - hours * 3600;
-                }
-
-                var minutes = Math.floor(totalduration / 60);
-                var seconds = totalduration - minutes * 60;
-                if (seconds < 10) {
-                    seconds = "0" + seconds;
-                }
-
-                if (hours == 0) {
-                    document.getElementById("queuetext").innerHTML = "Queue:<br>" + data.queue.length + " songs - " + minutes + ":" + seconds;
-                } else {
-                    if (minutes < 10) {
-                        minutes = "0" + minutes;
+                    // Sum the duration of all the songs in the queue
+                    var totalduration = 0;
+                    for (var i = 0; i < data.queue.length; i++) {
+                        totalduration += data.queue[i].videolenght;
                     }
-                    document.getElementById("queuetext").innerHTML = "Queue:<br>" + data.queue.length + " songs - " + hours + ":" + minutes + ":" + seconds;
-                }
-            }
 
-            for (var i = 0; i < data.queue.length; i++) {
-                var queueitem = document.createElement("div");
-                queueitem.className = "row mb-3 ms-3 queueitem";
-                queueitem.id = "queueitem" + data.queue[i].placeinqueue;
+                    // Convert totalduration to hours, minutes and seconds if more than 60 minutes
+                    // Should look like this if under 60 minutes: 7:02
+                    // Should look like this if over 60 minutes: 1:07:02
+                    
+                    if (totalduration < 3600) {
+                        var hours = 0;
+                    } else {
+                        var hours = Math.floor(totalduration / 3600);
+                        totalduration = totalduration - hours * 3600;
+                    }
 
-                var placeinqueue = data.queue[i].placeinqueue;
+                    var minutes = Math.floor(totalduration / 60);
+                    var seconds = totalduration - minutes * 60;
+                    if (seconds < 10) {
+                        seconds = "0" + seconds;
+                    }
 
-                var col1 = document.createElement("div");
-                col1.className = "col-2 align-self-center";
-
-                var col1row1 = document.createElement("div");
-                col1row1.className = "row m-0 unselectable";
-                col1row1.style = "height: 50px; width: 50px; border-radius: 10px; background-image: url('" + data.queue[i].thumbnailurl + "'); background-size: cover; background-position: center;";
-                col1.appendChild(col1row1);
-
-                var col2 = document.createElement("div");
-                col2.className = "col-8";
-
-                // convert data.queue[i].videolenght to minutes and seconds
-                var minutes = Math.floor(data.queue[i].videolenght / 60);
-                var seconds = data.queue[i].videolenght - minutes * 60;
-                if (seconds < 10) {
-                    seconds = "0" + seconds;
-                }
-                
-                var col2row1 = document.createElement("span");
-                col2row1.innerHTML = data.queue[i].name + " - " + minutes + ":" + seconds;
-                col2.appendChild(col2row1);
-
-                var col2row2 = document.createElement("br");
-                col2.appendChild(col2row2);
-                
-                var col2row3 = document.createElement("span");
-                col2row3.innerText = data.queue[i].sentby;
-                col2.appendChild(col2row3);
-                
-                var col3 = document.createElement("div");
-                col3.className = "col-1 align-self-center";
-
-                var col3row1 = document.createElement("div");
-                col3row1.className = "row";
-
-                var col3row1a1 = document.createElement("a");
-                col3row1a1.href = "javascript:moveToTop(" + placeinqueue + ")";
-
-                var col3row1a1img1 = document.createElement("img");
-                col3row1a1img1.className = "d-block w-100 unselectable imagebutton";
-                col3row1a1img1.src = "/static/img/gototop.png";
-                col3row1a1img1.alt = "Go To Top";
-                col3row1a1.appendChild(col3row1a1img1);
-
-                col3row1.appendChild(col3row1a1);
-
-                col3.appendChild(col3row1);
-
-                var col4 = document.createElement("div");
-                col4.className = "col-1 align-self-center";
-
-                var col4row1 = document.createElement("div");
-                col4row1.className = "row";
-
-                var col4row1a1 = document.createElement("a");
-                col4row1a1.href = "javascript:deleteFromQueue(" + placeinqueue + ")";
-
-                var col4row1a1img1 = document.createElement("img");
-                col4row1a1img1.className = "d-block w-100 unselectable imagebutton";
-                col4row1a1img1.src = "/static/img/delete.png";
-                col4row1a1img1.alt = "Delete";
-                col4row1a1.appendChild(col4row1a1img1);
-
-                col4row1.appendChild(col4row1a1);
-
-                col4.appendChild(col4row1);
-
-                if (placeinqueue == 1) {
-                    col3row1.removeChild(col3row1a1);
+                    if (hours == 0) {
+                        document.getElementById("queuetext").innerHTML = "Queue:<br>" + data.queue.length + " songs - " + minutes + ":" + seconds;
+                    } else {
+                        if (minutes < 10) {
+                            minutes = "0" + minutes;
+                        }
+                        document.getElementById("queuetext").innerHTML = "Queue:<br>" + data.queue.length + " songs - " + hours + ":" + minutes + ":" + seconds;
+                    }
                 }
 
-                queueitem.appendChild(col1);
-                queueitem.appendChild(col2);
-                queueitem.appendChild(col3);
-                queueitem.appendChild(col4);
+                for (var i = 0; i < data.queue.length; i++) {
+                    var queueitem = document.createElement("div");
+                    queueitem.className = "row mb-3 ms-3 queueitem";
+                    queueitem.id = "queueitem" + data.queue[i].placeinqueue;
 
-                queueitems.appendChild(queueitem);
+                    var placeinqueue = data.queue[i].placeinqueue;
+
+                    var col1 = document.createElement("div");
+                    col1.className = "col-2 align-self-center";
+
+                    var col1row1 = document.createElement("div");
+                    col1row1.className = "row m-0 unselectable";
+                    col1row1.style = "height: 50px; width: 50px; border-radius: 10px; background-image: url('" + data.queue[i].thumbnailurl + "'); background-size: cover; background-position: center;";
+                    col1.appendChild(col1row1);
+
+                    var col2 = document.createElement("div");
+                    col2.className = "col-8";
+
+                    // convert data.queue[i].videolenght to minutes and seconds
+                    var minutes = Math.floor(data.queue[i].videolenght / 60);
+                    var seconds = data.queue[i].videolenght - minutes * 60;
+                    if (seconds < 10) {
+                        seconds = "0" + seconds;
+                    }
+                    
+                    var col2row1 = document.createElement("span");
+                    col2row1.innerHTML = data.queue[i].name + " - " + minutes + ":" + seconds;
+                    col2.appendChild(col2row1);
+
+                    var col2row2 = document.createElement("br");
+                    col2.appendChild(col2row2);
+                    
+                    var col2row3 = document.createElement("span");
+                    col2row3.innerText = data.queue[i].sentby;
+                    col2.appendChild(col2row3);
+                    
+                    var col3 = document.createElement("div");
+                    col3.className = "col-1 align-self-center";
+
+                    var col3row1 = document.createElement("div");
+                    col3row1.className = "row";
+
+                    var col3row1a1 = document.createElement("a");
+                    col3row1a1.href = "javascript:moveToTop(" + placeinqueue + ")";
+
+                    var col3row1a1img1 = document.createElement("img");
+                    col3row1a1img1.className = "d-block w-100 unselectable imagebutton";
+                    col3row1a1img1.src = "/static/img/gototop.png";
+                    col3row1a1img1.alt = "Go To Top";
+                    col3row1a1.appendChild(col3row1a1img1);
+
+                    col3row1.appendChild(col3row1a1);
+
+                    col3.appendChild(col3row1);
+
+                    var col4 = document.createElement("div");
+                    col4.className = "col-1 align-self-center";
+
+                    var col4row1 = document.createElement("div");
+                    col4row1.className = "row";
+
+                    var col4row1a1 = document.createElement("a");
+                    col4row1a1.href = "javascript:deleteFromQueue(" + placeinqueue + ")";
+
+                    var col4row1a1img1 = document.createElement("img");
+                    col4row1a1img1.className = "d-block w-100 unselectable imagebutton";
+                    col4row1a1img1.src = "/static/img/delete.png";
+                    col4row1a1img1.alt = "Delete";
+                    col4row1a1.appendChild(col4row1a1img1);
+
+                    col4row1.appendChild(col4row1a1);
+
+                    col4.appendChild(col4row1);
+
+                    if (placeinqueue == 1) {
+                        col3row1.removeChild(col3row1a1);
+                    }
+
+                    queueitem.appendChild(col1);
+                    queueitem.appendChild(col2);
+                    queueitem.appendChild(col3);
+                    queueitem.appendChild(col4);
+
+                    queueitems.appendChild(queueitem);
+                }
+            } else if (data.queue == "skip") {
+                loadNextSongThanPlay();
+            } else {
+                console.log("Somethine went wrong")
             }
         }
       } else {
@@ -477,11 +482,15 @@ playerSetup = function() {
     }
 
     document.querySelector("#audiosource").addEventListener("ended", loadNextSongThanPlay, false);
-}
 
-// Check if the queue is empty after some playing 
-// Flow: User is playing music, there is no more music in the queue so music stops, user adds music to the queue, then with this function loadNextSong() is called
-// TODO
+    // Event listener for if the audiosource is playing than the play button should be a pause button and seek slider should be moving and the current time should be updating
+    document.querySelector("#audiosource").addEventListener("playing", function() {
+        // Play button to pause button (replace image source)
+        playIconContainer.src = "/static/img/pause.png";
+        requestAnimationFrame(whilePlaying);
+        playState = 'pause';
+    }, false);
+}
 
 listenAndBuildQueue();
 playerSetup();
