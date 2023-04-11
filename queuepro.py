@@ -899,6 +899,5 @@ def managesessionapiskip(sessionid, guestid):
                     return jsonify({'response': "No skips left!"})
 
 if __name__ == '__main__':
-    context = ('./ssl/localhost.crt', './ssl/localhost.key')
     app.run(host=hostIp, port=hostPort, debug=False)
     print("\n")
