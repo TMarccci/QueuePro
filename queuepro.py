@@ -3,6 +3,7 @@ import mysql.connector, uuid, time, segno, datetime, json, mysql.connector.pooli
 from pytube import YouTube 
 
 hostIp = '127.0.0.1'
+domain = 'https://queuepro.tmarccci.hu'
 hostPort = 5000
 app = Flask(__name__)
 
@@ -72,7 +73,7 @@ def hostsessionid(sessionid):
 
 # Generate QR code for session
 def generate_qr_code(sessionid):
-    link = f'http://{hostIp}:{hostPort}/joinsession/{sessionid}'
+    link = f'{domain}/joinsession/{sessionid}'
 
     qr = segno.make_qr(link)
     qr.save(f'static/qrs/{sessionid}.png', scale=10)
@@ -214,7 +215,7 @@ def movetotop(sessionid):
         # Add 1 to placeinqueue for the songs is are above the song
         cnx = cnxpool.get_connection()
         mycursor = cnx.cursor()
-        sql = "UPDATE qp_sessionmusics SET placeinqueue = placeinqueue + 1 WHERE whichsession = %s AND placeinqueue < %s AND isplayed = 0"
+        sql = "UPDATE qp_sessionmusics SET placeinqueue = placeinqueue + 1 WHERE whichsession = %s AND placeinqueue < %s AND isplayed = 0 AND isplaying = 0"
         val = (sessionid, placeinqueue)
         mycursor.execute(sql, val)
         cnx.commit()
@@ -650,13 +651,11 @@ def managesessionapiid(sessionid, guestid):
                 # Add it to the queue the way get the last place in the queue and add 1. If there is no queue then add 1
                 cnx = cnxpool.get_connection()
                 mycursor = cnx.cursor()
-                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s AND placeinqueue > 0 ORDER BY placeinqueue DESC"
+                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s AND placeinqueue > 0 AND isplayed = 0 AND isplaying = 0 ORDER BY placeinqueue DESC"
                 val = (sessionidfromapi,)
                 mycursor.execute(sql, val)
                 myresult = mycursor.fetchall()
                 cnx.close()
-
-
 
                 if len(myresult) == 0:
                     placeinqueue = 1
@@ -745,7 +744,7 @@ def managesessionapiid(sessionid, guestid):
                                 # Add it to the queue the way get the last place in the queue and add 1. If there is no queue then add 1
                                 cnx = cnxpool.get_connection()
                                 mycursor = cnx.cursor()
-                                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s ORDER BY placeinqueue DESC"
+                                sql = "SELECT placeinqueue FROM qp_sessionmusics WHERE whichsession = %s AND placeinqueue > 0 AND isplayed = 0 AND isplaying = 0 ORDER BY placeinqueue DESC"
                                 val = (sessionidfromapi,)
                                 mycursor.execute(sql, val)
                                 myresult = mycursor.fetchall()
@@ -839,7 +838,65 @@ def managesessionapiid(sessionid, guestid):
 # Control session api skip part
 @app.route('/managesessionapiskip/<sessionid>/<guestid>', methods=['POST'])
 def managesessionapiskip(sessionid, guestid):
-    print("ToDo")
+    if request.method == 'POST':
+        # Check if the session exists
+        cnx = cnxpool.get_connection()
+        mycursor = cnx.cursor()
+        sql = "SELECT * FROM qp_sessions WHERE sessionid = %s"
+        val = (sessionid,)
+        mycursor.execute(sql, val)
+        myresult = mycursor.fetchall()
+        cnx.close()
+
+        if len(myresult) == 0:
+            # If no then return "Session does not exist"
+            return jsonify({'response': "Session does not exist!"})
+        else:
+            # If yes then check if the user is in the session
+            cnx = cnxpool.get_connection()
+            mycursor = cnx.cursor()
+            sql = "SELECT userid FROM qp_sessionusers WHERE whichsession = %s AND userid = %s"
+            val = (sessionid, guestid)
+            mycursor.execute(sql, val)
+            myresult = mycursor.fetchall()
+            cnx.close()
+
+            if len(myresult) == 0:
+                # If no then return "User is not in the session"
+                return jsonify({'response': "User is not in the session!"})
+            else:
+                # If yes then check if the user has skips left
+                cnx = cnxpool.get_connection()
+                mycursor = cnx.cursor()
+                sql = "SELECT skipsleft FROM qp_sessionusers WHERE whichsession = %s AND userid = %s"
+                val = (sessionid, guestid)
+                mycursor.execute(sql, val)
+                myresult = mycursor.fetchall()
+                cnx.close()
+
+                if myresult[0][0] > 0:
+                    # If yes then skip song
+                    cnx = cnxpool.get_connection()
+                    mycursor = cnx.cursor()
+                    sql = "UPDATE qp_sessions SET skipcurrent = 1 WHERE sessionid = %s"
+                    val = (sessionid,)
+                    mycursor.execute(sql, val)
+                    cnx.commit()
+                    cnx.close()
+
+                    # Remove 1 skip from the user
+                    cnx = cnxpool.get_connection()
+                    mycursor = cnx.cursor()
+                    sql = "UPDATE qp_sessionusers SET skipsleft = skipsleft - 1 WHERE whichsession = %s AND userid = %s"
+                    val = (sessionid, guestid)
+                    mycursor.execute(sql, val)
+                    cnx.commit()
+                    cnx.close()
+
+                    return jsonify({'skipsleft': myresult[0][0] - 1})
+                else:
+                    # If no then return "No skips left"
+                    return jsonify({'response': "No skips left!"})
 
 if __name__ == '__main__':
     context = ('./ssl/localhost.crt', './ssl/localhost.key')

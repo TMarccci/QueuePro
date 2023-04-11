@@ -106,3 +106,40 @@ pasteButton.addEventListener('click', async () => {
     const text = await navigator.clipboard.readText()
     linkfield.value = text;
 })
+
+// skipCurrent()
+skipCurrent = function() {
+    var sessionid = document.getElementById("sessionidtext").innerText;
+    var userid = document.getElementById("useridtext").innerText;
+    var combinedurl = "/managesessionapiskip/" + sessionid + "/" + userid;
+
+    $.ajax({
+        type: "POST",
+        url: combinedurl,
+        cache: false,
+        timeout: 600000,
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(data) {
+            // Minus 1 from the skipsleft
+            var skipsleft = document.getElementById("skipsleft");
+            skipsleft.innerHTML = data.skipsleft;
+
+            // If the user has no skips left, add claslist d-none to skipsparent
+            if (data.skipsleft == 0) {
+                var skipsparent = document.getElementById("skipsparent");
+                skipsparent.classList.add("d-none");
+            }
+        },
+        error: function(e) {
+            console.log("Error");
+        }
+    });
+}
+
+// Hide skipsparent if the user has no skips left
+var skipsleft = document.getElementById("skipsleft");
+if (skipsleft.innerHTML == 0) {
+    var skipsparent = document.getElementById("skipsparent");
+    skipsparent.classList.add("d-none");
+}

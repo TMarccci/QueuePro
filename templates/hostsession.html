@@ -7,14 +7,14 @@
             <div class="row mt-3 pb-5 placeholder-glow" id="albumcoverparent">
                 <img class="d-block mx-auto w-75 placeholder unselectable" src="{{ url_for('static', filename='img/emptycover.png') }}" alt="" id="albumcover">
             </div>
-            <div class="row" id="audiosource-container">
+            <div class="row" id="audiosource-containerr">
                 <audio id="audiosource" src="" preload=”metadata” autoplay>
                 <button id="play-icon">Play</button>
             </div>
             <div class="row mt-3 d-flex">
                 <div class="col-2 align-self-center"><div class="row text-center placeholder-glow" id="timecurrentparent"><span class="p-0 placeholder w-75 mx-auto" id="timecurrent">0:00</span></div></div>
                 <div class="col-8">
-                    <div class="row align-self-center">
+                    <div class="row align-self-center" id="audiosource-container">
                         <input type="range" id="seek-slider" max="100" value="0">
                     </div>
                 </div>
