@@ -12,7 +12,7 @@ user = 'pythonuser'
 password = 'nn253g8v@'
 database = 'queuepro'
 
-cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name="mypool", pool_size=15, host=host, user=user, password=password, database=database)
+cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name="mypool", pool_size=20, host=host, user=user, password=password, database=database)
 
 @app.route('/')
 def index():
@@ -99,8 +99,7 @@ def streamqueue(sessionid):
             for x in range(200):
                 time.sleep(0.01)
 
-
-    return Response(get_data(), mimetype='text/event-stream')
+    return Response(get_data(), mimetype='text/event-stream', headers={'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 # Get the queue from the database
 def get_queue_andifskip(sessionid):
@@ -497,6 +496,7 @@ def joinsessionapiid(sessionid):
             val = (sessionidfromapi,)
             mycursor.execute(sql, val)
             preferenceresult = mycursor.fetchall()
+            cnx.close()
 
             skipsleft = preferenceresult[0][0]
         except:
@@ -577,14 +577,27 @@ def managesessionapiid(sessionid, guestid):
         # Replace schematic link
         link = yt.watch_url
 
-        # Get video name
-        videoname = yt.title
+        try:
+            # Get video name
+            videoname = yt.title
 
-        # Get video lenght
-        videolenght = yt.length
+            # Get video lenght
+            videolenght = yt.length
 
-        # Get thumbnail url
-        thumbnailurl = yt.thumbnail_url
+            # Get thumbnail url
+            thumbnailurl = yt.thumbnail_url
+        except:
+            for i in range(200):
+                time.sleep(0.1)
+
+            # Get video name
+            videoname = yt.title
+
+            # Get video lenght
+            videolenght = yt.length
+
+            # Get thumbnail url
+            thumbnailurl = yt.thumbnail_url
 
         # Get time between songs
         cnx = cnxpool.get_connection()
@@ -897,6 +910,11 @@ def managesessionapiskip(sessionid, guestid):
                 else:
                     # If no then return "No skips left"
                     return jsonify({'response': "No skips left!"})
+
+# Public queue
+@app.route('/publicqueue/<sessionid>')
+def publicqueue(sessionid):
+    return render_template('publicqueue.html', sessionid=sessionid, title="QueuePro - Public queue")
 
 if __name__ == '__main__':
     app.run(host=hostIp, port=hostPort, debug=False)

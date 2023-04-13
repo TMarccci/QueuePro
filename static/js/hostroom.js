@@ -13,10 +13,6 @@ switcher.addEventListener('click', () => {
     }
 });
 
-if (darkMode === 'enabled') {
-    enableDarkMode();
-}
-
 const enableDarkMode = () => {
     // Override the css variables
     document.documentElement.style.setProperty('background-color', '#2a2a2a', 'important');
@@ -43,6 +39,9 @@ const disableDarkMode = () => {
     switcher.src = "/static/img/moon.png";
 }
 
+if (darkMode === 'enabled') {
+    enableDarkMode();
+}
 
 // Load next song
 function loadNextSong() {

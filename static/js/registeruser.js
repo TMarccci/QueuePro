@@ -34,7 +34,7 @@ sendNameAndJoinSession = function() {
                 if (data.response == "Error getting skipsleft") {
                     // set the alert text content
                     var alerttextcontent = document.getElementById("alerttext");
-                    alerttextcontent.innerHTML = "Internal Server Error! <br>Try again!";
+                    alerttextcontent.innerHTML = "Error Getting Skipsleft!<br>Try again!<br>Possible internal server error!";
 
                     /* Show error by removing d-none and unselectable class id: errormessage */
                     var errormessage = document.getElementById("errormessage");
@@ -45,7 +45,7 @@ sendNameAndJoinSession = function() {
                 else if (data.response == "Name already taken") {
                     // set the alert text content
                     var alerttextcontent = document.getElementById("alerttext");
-                    alerttextcontent.innerHTML = "Name already taken! <br>Try another one!";
+                    alerttextcontent.innerHTML = "Name already taken!<br>Try another one!";
 
                     /* Show error by removing d-none and unselectable class id: errormessage */
                     var errormessage = document.getElementById("errormessage");
@@ -77,7 +77,7 @@ sendNameAndJoinSession = function() {
     } else {
         // set the alert text content
         var alerttextcontent = document.getElementById("alerttext");
-        alerttextcontent.innerHTML = "Username not long enough! <br>(Min. 3 characters)";
+        alerttextcontent.innerHTML = "Username not long enough!<br>(Min. 3 characters)";
 
         /* Show error by removing d-none and unselectable class id: errormessage */
         var errormessage = document.getElementById("errormessage");
